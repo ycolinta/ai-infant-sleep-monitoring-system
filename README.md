@@ -7,7 +7,7 @@ Web Application (Parent Dashboard)
 
 ↓
 
-Backend (Python Server)
+Backend (Python)
 
 ↓
 

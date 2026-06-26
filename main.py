@@ -1,5 +1,5 @@
 def main():
-    print("AI Infant Sleep Monitoring System")
+    print("AI Infant Sleep Monitoring System!")
 
 
 if __name__ == "__main__":
