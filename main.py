@@ -1,10 +1,14 @@
+# CS Independent study
+# AI Infant Sleep Monitoring System
+
+import os
+from dotenv import load_dotenv
+from google import genai
+
+
 def main():
     print("AI Infant Sleep Monitoring System!")
 
-import os
-
-from dotenv import load_dotenv
-from google import genai
 
 load_dotenv()
 
