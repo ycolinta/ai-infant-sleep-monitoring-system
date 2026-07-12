@@ -1,0 +1,6 @@
+{
+    "No apparent safety concerns.": false,
+    "Possible safety concerns.": false,
+    "Serious safety concerns.": true,
+    "explanation": "The baby monitor displays a room temperature of 82.2\u00b0F, which is significantly higher than the recommended safe range for a child's sleep environment and poses a risk of overheating. Additionally, there appears to be loose bedding or a blanket in the crib, which can be a suffocation hazard, especially for infants or young toddlers. There may also be a bumper pad lining the crib, which is not recommended due to entrapment and suffocation risks."
+}
