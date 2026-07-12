@@ -86,13 +86,14 @@ def main():
 
         print(f"Processing {image_path.name}")
 
+        # handling exception
 
-
-
-
-
-
-
+        try:
+            response_text = process_image(client, image_path)
+            save_output(response_text, output_path)
+            print(f"Saved: {output_path}")
+        except Exception as error:
+            print(f"Could not process image {image_path.name}. Error: {error}")
 
 
 if __name__ == "__main__":
