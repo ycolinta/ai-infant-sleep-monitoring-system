@@ -4,13 +4,16 @@
 import json
 import os
 import time
-from pathlib import Path
+import base64
 
+from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
+from openai import OpenAI
 
 IMAGES = Path(__file__).parent / 'images'
 GEMINI_OUTPUT = Path(__file__).parent / 'gemini_2_5_flash_outputs'
+OPENAI_OUTPUT = Path(__file__).parent / 'openai_outputs'
 PROMPT = """
         You are assisting with the assessment of child sleep environments for a computer science research project.
         Analyze the child sleep environment shown in this image.
@@ -24,9 +27,8 @@ PROMPT = """
         
         Briefly explain the observations that led to your assessment in the explanation field.
 
-        Return only one valid JSON object. Do not include Markdown code fences or any text outside the JSON object.
-        
-"""
+        Return only one valid JSON object. Do not include Markdown code fences or any text outside the JSON object.       
+        """
 
 RESPONSE_SCHEMA = {
     "type": "object",
@@ -54,7 +56,7 @@ RESPONSE_SCHEMA = {
 }
 
 
-def process_image(client, image_path):
+def process_image_gemini(client, image_path):
     """
     Takes a Gemini client and image path, creates an Interaction session record
     using the prompt and image, and returns the model's response text.
@@ -83,6 +85,45 @@ def process_image(client, image_path):
     return interaction.output_text
 
 
+def process_image_openai(client, image_path):
+    """
+    Sends one image and the prompt to GPT-4.1 mini
+    and returns the model's response text.
+    """
+
+    with image_path.open("rb") as image_file:
+        image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": PROMPT
+                    },
+                    {
+                        "type": "input_image",
+                        "image_url": f"data:image/jpeg;base64,"f"{image_data}"
+                    }
+                ]
+            }
+        ],
+        text={
+            "format": {
+                "type": "json_schema",
+                "name": "infant_sleep_safety_assessment",
+                "strict": True,
+                "schema": RESPONSE_SCHEMA
+            }
+        }
+    )
+
+    return response.output_text
+
+
 def save_output(output_text, output_path):
     """
     Removes possible markdown code.
@@ -108,19 +149,24 @@ def main():
 
     load_dotenv()
 
-    api_key = os.getenv("GEMINI_API_KEY")
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    openai_api_key = os.getenv("OPENAI_API_KEY")
 
-    if not api_key:
+    if not gemini_api_key:
         raise ValueError("Missing GEMINI_API_KEY environment variable")
 
-    client = genai.Client(api_key=api_key)
+    if not openai_api_key:
+        raise ValueError("Missing OPENAI_API_KEY environment variable")
+
+    gemini_client = genai.Client(api_key=gemini_api_key)
+    openai_client = OpenAI(api_key=openai_api_key)
 
     img_ext_allowed = {
         ".jpg",
-        ".jpeg",
-        ".png"
+        ".jpeg"
     }
 
+    ###### Running gemini
     for image_path in sorted(IMAGES.iterdir()):
         if image_path.suffix.lower() not in img_ext_allowed:
             continue
@@ -128,28 +174,54 @@ def main():
         output_path = GEMINI_OUTPUT / f"{image_path.stem}.json"
 
         if output_path.exists():
-            print(f"Skipping {image_path.name}: output already exists.")
+            print(f"Skipping Gemini's flash model for {image_path.name}: output already exists.")
             continue
 
-        print(f"Processing {image_path.name}")
+        print(f"Processing {image_path.name} with Gemini.")
 
         # handling exception
 
         try:
-            response_text = process_image(client, image_path)
+            response_text = process_image_gemini(gemini_client, image_path)
 
-            print("RAW RESPONSE:")
+            print("GEMINI RAW RESPONSE:")
             print(repr(response_text))
 
             save_output(response_text, output_path)
             print(f"Saved: {output_path}")
 
         except Exception as error:
-            print(f"Could not process image {image_path.name}. Error: {error}")
+            print(f"Could not process image {image_path.name} with Gemini. Error: {error}")
         finally:
             time.sleep(15)
 
-        # break # Stop after attempting one image to see if program works
+    ###### Running OpenAI
+    for image_path in sorted(IMAGES.iterdir()):
+
+        if image_path.suffix.lower() not in img_ext_allowed:
+            continue
+
+        output_path = OPENAI_OUTPUT / f"{image_path.stem}.json"
+
+        if output_path.exists():
+            print(f"Skipping OpenAI's mini model for {image_path.name}: output already exists.")
+            continue
+
+        print(f"Processing {image_path.name} with OpenAI")
+
+        try:
+            response_text = process_image_openai(openai_client,image_path)
+
+            print("OPENAI RAW RESPONSE:")
+            print(repr(response_text))
+
+            save_output(response_text, output_path)
+            print(f"Saved: {output_path}")
+
+        except Exception as error:
+            print(f"Could not process image {image_path.name} with OpenAI. Error: {error}")
+        finally:
+            time.sleep(15)
 
 
 if __name__ == "__main__":
