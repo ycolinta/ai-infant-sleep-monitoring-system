@@ -1,0 +1,123 @@
+1. A response schema was provided to both AI's as a template to format their responses. Snake case convention was used.
+
+----------------- Response Schema Given -----------------------------
+RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "no_apparent_safety_concerns": {
+            "type": "boolean"
+        },
+        "possible_safety_concerns": {
+            "type": "boolean"
+        },
+        "serious_safety_concerns": {
+            "type": "boolean"
+        },
+        "explanation": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "no_apparent_safety_concerns",
+        "possible_safety_concerns",
+        "serious_safety_concerns",
+        "explanation"
+    ],
+    "additionalProperties": False
+}
+
+----------------- Parent's response structure -----------------------
+
+This is the way I, the parent, structured my responses:
+{
+  "file_name": "image1.jpeg",
+  "no_apparent_safety_concerns": false,
+  "possible_safety_concerns": true,
+  "serious_safety_concerns": false,
+  "explanation": "There is a soft blanket around the child's lower body that may pose a hazard..."
+}
+
+----------------- Gemini model's response structure -----------------
+{
+    "No apparent safety concerns.": false,
+    "Possible safety concerns.": false,
+    "Serious safety concerns.": true,
+    "explanation": "There are serious safety concerns in this sleep environment. A soft..."
+}
+
+----------------- OpenAI model's response structure -----------------
+{
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
+    "serious_safety_concerns": false,
+    "explanation": "The infant is sleeping on their side rather than on their back, which..."
+}
+
+
+Gemini's model did not adhere to the 'snake case' syntax given in the response schema, opting to use 'sentence case' in where the first letter of the first word in each of the three sentence labels was capitalized. The last label, 'explanation', was in lowercase.
+
+########################  Questions raised 
+
+When comparing assessments accross models, will Gemini's format cause issues? 
+Should I provide more instructions to Gemini to adhere to this structure? 
+Do I instruct models to also include a field called file_name to record the current image's name for ID? 
+
+2. This is the prompt that was given to the AI models:
+
+"""
+        You are assisting with the assessment of child sleep environments for a computer science research project.
+        Analyze the child sleep environment shown in this image.
+        Based only on the visible information, determine whether the image shows:
+        
+        - No apparent safety concerns.
+        - Possible safety concerns.
+        - Serious safety concerns.
+        
+        Exactly one category must be true. The other two must be false.
+        
+        Briefly explain the observations that led to your assessment in the explanation field.
+
+        Return only one valid JSON object. Do not include Markdown code fences or any text outside the JSON object.       
+"""
+
+Both AI models adhered to the instruction given of analyzing child sleep environment shown in the images. However, when asked for the explanation, AI models did use the explanation field to write observations found in the images, but did not explain the distinction in assigning 'True' for one label over the other using those observations.
+
+########################  Questions raised 
+Should the prompt be redefined to prompt the AI to explain why it assigned one label over the other in the explanation field?
+
+The prompt included instructions to not include Markdown code fences or any text outside the JSON object. Gemini's output did return the JSON object inside a fenced block (```). A function was written to clean possible markdown code and save this output into the image's json files. 
+
+########################  Questions raised 
+Should I rely on a function to clean possible markdown text found in AI responses or find a better way to emphasize to the AI models to not include anything outside the JSON object?
+
+3. Begin designing the relational schema or model of a database. 
+
+Entities include different intelligent models such as Gemini, OpenAI, Parent. 
+These intelligent models are analyzing images. 
+When intelligent models analyze images they produce responses. 
+
+Observations from entities so far:
+
+(Intelligent models and images relationship)
+One intelligent model has many images to analyze. 
+An image can be analyzed by many intelligent models. 
+This is a many to many relationship. 
+
+(Intelligent models and responses relationship)
+One intelligent model has many responses.
+A response has only one intelligent model. 
+This is a one to many relationship.
+
+(Images and responses relationship)
+(Response is another entity).
+One image can have many responses. 
+A response is tied to only one particular image. 
+This is a one to many relationship. 
+
+Intelligent model(intelligent_model_id, intelligent_model_name)
+Image(image_id, file_path, file_ext) 
+Response(response_id, image_id, model_id, no_apparent_safety_concerns, possible_safety_concerns, serious_safety_concerns, explanation)
+
+
+
+
