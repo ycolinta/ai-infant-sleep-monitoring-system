@@ -59,11 +59,20 @@ RESPONSE_SCHEMA = {
 }
 
 
+ASSESSMENT_FIELDS = [
+    "no_apparent_safety_concerns",
+    "possible_safety_concerns",
+    "serious_safety_concerns"
+]
+
+
 def process_image_gemini(client, image_path):
     """
     Takes a Gemini client and image path, creates an Interaction session record
     using the prompt and image, and returns the model's response text.
     """
+    # structured JSON output is configured by placing mime_type="application/json"
+    # and the schema inside response_format
     uploaded_img = client.files.upload(file=image_path)
     interaction = client.interactions.create(
         model="gemini-2.5-flash",
@@ -127,23 +136,85 @@ def process_image_openai(client, image_path):
     return response.output_text
 
 
-def save_output(output_text, output_path):
+def clean_output_text(output_text):
     """
-    Removes possible markdown code.
-    Takes AI's response text and writes it to a file
-    in JSON format at the specified output path.
+    Removes possible Markdown code fences from AI output text.
     """
     cleaned_text = output_text.strip()
 
     if cleaned_text.startswith("```json"):
         cleaned_text = cleaned_text[len("```json"):]
+    elif cleaned_text.startswith("```"):
+        cleaned_text = cleaned_text[len("```"):]
 
     if cleaned_text.endswith("```"):
         cleaned_text = cleaned_text[:-3]
 
-    cleaned_text = cleaned_text.strip()
+    final_text = cleaned_text.strip()
+
+    return final_text
+
+
+def validate_output(output_obj):
+    """
+    Checks that the AI response follows the expected JSON format.
+    """
+
+    # Check that the output is a JSON object
+    if not isinstance(output_obj, dict):
+        raise ValueError("AI output must be a JSON object.")
+
+    # Check that all required fields exist
+    for field in ASSESSMENT_FIELDS:
+        if field not in output_obj:
+            raise ValueError(f"Missing field: {field}")
+
+    if "explanation" not in output_obj:
+        raise ValueError("Missing field: explanation")
+
+    # Check that the assessment fields contain True or False
+    for field in ASSESSMENT_FIELDS:
+        if not isinstance(output_obj[field], bool):
+            raise ValueError(f"{field} must be True or False.")
+
+    # Check that explanation is a non-empty string
+    if not isinstance(output_obj["explanation"], str):
+        raise ValueError("Explanation must be a string.")
+
+    if output_obj["explanation"].strip() == "":
+        raise ValueError("Explanation cannot be empty.")
+
+    # Count how many assessment categories are True
+    true_count = 0
+
+    for field in ASSESSMENT_FIELDS:
+        if output_obj[field]:
+            true_count += 1
+
+    if true_count != 1:
+        raise ValueError("Exactly one assessment category must be True only.")
+
+    expected_fields = ASSESSMENT_FIELDS + ["explanation"]
+
+    for field in output_obj:
+        if field not in expected_fields:
+            raise ValueError(f"Unexpected field: {field}")
+
+
+def save_output(output_text, output_path):
+    """
+    Takes AI's response text and writes it to a file
+    in JSON format at the specified output path.
+    """
+    cleaned_text = clean_output_text(output_text)
 
     string_to_obj = json.loads(cleaned_text)
+
+    validate_output(string_to_obj)
+
+    # Create an output folder if it does not exist already
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
     with output_path.open("w", encoding="utf-8") as out_file:
         json.dump(string_to_obj, out_file, indent=4)
 
@@ -168,6 +239,7 @@ def main():
         ".jpg",
         ".jpeg"
     }
+
 
     ###### Running gemini
     for image_path in sorted(IMAGES.iterdir()):
