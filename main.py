@@ -16,9 +16,15 @@ PROJECT_FOLDER = Path(__file__).parent
 
 IMAGES = PROJECT_FOLDER / "images"
 RESULTS_FOLDER = PROJECT_FOLDER / "results"
+
 GEMINI_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_outputs"
+GEMINI_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_invalid_outputs"
+
 OPENAI_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_outputs"
+OPENAI_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_invalid_outputs"
+
 ANTHROPIC_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_outputs"
+ANTHROPIC_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_invalid_outputs"
 
 PROMPT = """
         You are assisting with the assessment of child sleep environments for a computer science research project.
@@ -75,8 +81,6 @@ def process_image_gemini(client, image_path):
     Takes a Gemini client and image path, creates an Interaction session record
     using the prompt and image, and returns the model's response text.
     """
-    # structured JSON output is configured by placing mime_type="application/json"
-    # and the schema inside response_format
     uploaded_img = client.files.upload(file=image_path)
     interaction = client.interactions.create(
         model="gemini-2.5-flash",
@@ -244,24 +248,40 @@ def validate_output(output_obj):
             raise ValueError(f"Unexpected field: {field}")
 
 
-def save_output(output_text, output_path, image_path):
+def save_output(output_text, output_path, invalid_output_path, image_path):
     """
     Takes AI's response text and writes it to a file
-    in JSON format at the specified output path.
+    in JSON format at the specified output path. If invalid,
+    saves to corresponding invalid output folder.
     """
     cleaned_text = clean_output_text(output_text)
 
-    string_to_obj = json.loads(cleaned_text)
+    try:
+        string_to_obj = json.loads(cleaned_text)
 
-    validate_output(string_to_obj)
+        validate_output(string_to_obj)
 
-    string_to_obj["file_name"] = image_path.name
+        string_to_obj["file_name"] = image_path.name
 
-    # Create an output folder if it does not exist already
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+        # Create an output folder if it does not exist already
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with output_path.open("w", encoding="utf-8") as out_file:
-        json.dump(string_to_obj, out_file, indent=4)
+        with output_path.open("w", encoding="utf-8") as out_file:
+            json.dump(string_to_obj, out_file, indent=4)
+
+        return True
+
+    except (json.JSONDecodeError, ValueError) as error:
+        invalid_output = {
+            "file_name": image_path.name,
+            "explanation_error": str(error),
+            "raw_response": output_text
+        }
+        invalid_output_path.parent.mkdir(parents=True, exist_ok=True)
+        with invalid_output_path.open("w", encoding="utf-8") as invalid_output_file:
+            json.dump(invalid_output, invalid_output_file, indent=4)
+
+        return False
 
 
 def main():
@@ -297,6 +317,7 @@ def main():
             continue
 
         output_path = GEMINI_OUTPUT / f"{image_path.stem}.json"
+        invalid_output_path = GEMINI_INVALID_OUTPUT / f"{image_path.stem}.json"
 
         if output_path.exists():
             print(f"Skipping Gemini's flash model for {image_path.name}: output already exists.")
@@ -304,17 +325,21 @@ def main():
 
         print(f"Processing {image_path.name} with Gemini.")
 
-        # handling exception
-
+        # output to be recorded either valid or invalid
         try:
             response_text = process_image_gemini(gemini_client, image_path)
 
             # print("GEMINI RAW RESPONSE:")
             # print(repr(response_text))
 
-            save_output(response_text, output_path, image_path)
-            print(f"Saved: {output_path}")
+            valid_output = save_output(response_text, output_path, invalid_output_path, image_path)
 
+            if valid_output:
+                print(f"Saved valid output: {output_path}")
+            else:
+                print(f"Saved invalid output: {invalid_output_path}")
+
+        # reached here for error in image processing
         except Exception as error:
             print(f"Could not process image {image_path.name} with Gemini. Error: {error}")
         finally:
@@ -328,6 +353,7 @@ def main():
             continue
 
         output_path = OPENAI_OUTPUT / f"{image_path.stem}.json"
+        invalid_output_path = OPENAI_INVALID_OUTPUT / f"{image_path.stem}.json"
 
         if output_path.exists():
             print(f"Skipping OpenAI's mini model for {image_path.name}: output already exists.")
@@ -341,8 +367,12 @@ def main():
             # print("OPENAI RAW RESPONSE:")
             # print(repr(response_text))
 
-            save_output(response_text, output_path, image_path)
-            print(f"Saved: {output_path}")
+            valid_output = save_output(response_text, output_path, invalid_output_path, image_path)
+
+            if valid_output:
+                print(f"Saved valid output: {output_path}")
+            else:
+                print(f"Saved invalid output: {invalid_output_path}")
 
         except Exception as error:
             print(f"Could not process image {image_path.name} with OpenAI. Error: {error}")
@@ -357,6 +387,7 @@ def main():
             continue
 
         output_path = ANTHROPIC_OUTPUT / f"{image_path.stem}.json"
+        invalid_output_path = ANTHROPIC_INVALID_OUTPUT / f"{image_path.stem}.json"
 
         if output_path.exists():
             print(f"Skipping Anthropic's model for {image_path.name}: output already exists.")
@@ -370,8 +401,12 @@ def main():
             # print("ANTHROPIC RAW RESPONSE:")
             # print(repr(response_text))
 
-            save_output(response_text, output_path, image_path)
-            print(f"Saved: {output_path}")
+            valid_output = save_output(response_text, output_path, invalid_output_path, image_path)
+
+            if valid_output:
+                print(f"Saved: {output_path}")
+            else:
+                print(f"Saved invalid output: {invalid_output_path}")
 
         except Exception as error:
             print(f"Could not process image {image_path.name} with Anthropic. Error: {error}")
