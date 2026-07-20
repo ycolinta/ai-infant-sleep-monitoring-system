@@ -11,9 +11,12 @@ from dotenv import load_dotenv
 from google import genai
 from openai import OpenAI
 
-IMAGES = Path(__file__).parent / 'images'
-GEMINI_OUTPUT = Path(__file__).parent / 'gemini_2_5_flash_outputs'
-OPENAI_OUTPUT = Path(__file__).parent / 'openai_outputs'
+PROJECT_FOLDER = Path(__file__).parent
+
+IMAGES = PROJECT_FOLDER / "images"
+RESULTS_FOLDER = PROJECT_FOLDER / "results"
+GEMINI_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_outputs"
+OPENAI_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_outputs"
 PROMPT = """
         You are assisting with the assessment of child sleep environments for a computer science research project.
         Analyze the child sleep environment shown in this image.
