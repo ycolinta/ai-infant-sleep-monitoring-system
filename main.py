@@ -10,6 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
 from openai import OpenAI
+from anthropic import Anthropic
 
 PROJECT_FOLDER = Path(__file__).parent
 
@@ -17,14 +18,17 @@ IMAGES = PROJECT_FOLDER / "images"
 RESULTS_FOLDER = PROJECT_FOLDER / "results"
 GEMINI_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_outputs"
 OPENAI_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_outputs"
+ANTHROPIC_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_outputs"
+
 PROMPT = """
         You are assisting with the assessment of child sleep environments for a computer science research project.
         Analyze the child sleep environment shown in this image.
-        Based only on the visible information, determine whether the image shows:
         
-        - No apparent safety concerns.
-        - Possible safety concerns.
-        - Serious safety concerns.
+        Set exactly one of the following fields to true:
+        
+        - no_apparent_safety_concerns
+        - possible_safety_concerns
+        - serious_safety_concerns
         
         Exactly one category must be true. The other two must be false.
         
@@ -136,6 +140,42 @@ def process_image_openai(client, image_path):
     return response.output_text
 
 
+def process_image_anthropic(client, image_path):
+    """
+    Sends one image and the prompt to Anthropic AI
+    and returns the model's response text.
+    """
+
+    with image_path.open("rb") as image_file:
+        image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=500,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": PROMPT
+                    },
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": image_data
+                        }
+                    }
+                ]
+            }
+        ]
+    )
+
+    return response.content[0].text
+
+
 def clean_output_text(output_text):
     """
     Removes possible Markdown code fences from AI output text.
@@ -194,14 +234,17 @@ def validate_output(output_obj):
     if true_count != 1:
         raise ValueError("Exactly one assessment category must be True only.")
 
-    expected_fields = ASSESSMENT_FIELDS + ["explanation"]
+    expected_fields = ASSESSMENT_FIELDS + [
+        "explanation",
+        "file_name"
+    ]
 
     for field in output_obj:
         if field not in expected_fields:
             raise ValueError(f"Unexpected field: {field}")
 
 
-def save_output(output_text, output_path):
+def save_output(output_text, output_path, image_path):
     """
     Takes AI's response text and writes it to a file
     in JSON format at the specified output path.
@@ -211,6 +254,8 @@ def save_output(output_text, output_path):
     string_to_obj = json.loads(cleaned_text)
 
     validate_output(string_to_obj)
+
+    string_to_obj["file_name"] = image_path.name
 
     # Create an output folder if it does not exist already
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -225,6 +270,7 @@ def main():
 
     gemini_api_key = os.getenv("GEMINI_API_KEY")
     openai_api_key = os.getenv("OPENAI_API_KEY")
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 
     if not gemini_api_key:
         raise ValueError("Missing GEMINI_API_KEY environment variable")
@@ -232,8 +278,12 @@ def main():
     if not openai_api_key:
         raise ValueError("Missing OPENAI_API_KEY environment variable")
 
+    if not anthropic_api_key:
+        raise ValueError("Missing ANTHROPIC_API_KEY environment variable")
+
     gemini_client = genai.Client(api_key=gemini_api_key)
     openai_client = OpenAI(api_key=openai_api_key)
+    anthropic_client = Anthropic(api_key=anthropic_api_key)
 
     img_ext_allowed = {
         ".jpg",
@@ -259,16 +309,17 @@ def main():
         try:
             response_text = process_image_gemini(gemini_client, image_path)
 
-            print("GEMINI RAW RESPONSE:")
-            print(repr(response_text))
+            # print("GEMINI RAW RESPONSE:")
+            # print(repr(response_text))
 
-            save_output(response_text, output_path)
+            save_output(response_text, output_path, image_path)
             print(f"Saved: {output_path}")
 
         except Exception as error:
             print(f"Could not process image {image_path.name} with Gemini. Error: {error}")
         finally:
             time.sleep(15)
+
 
     ###### Running OpenAI
     for image_path in sorted(IMAGES.iterdir()):
@@ -287,14 +338,43 @@ def main():
         try:
             response_text = process_image_openai(openai_client,image_path)
 
-            print("OPENAI RAW RESPONSE:")
-            print(repr(response_text))
+            # print("OPENAI RAW RESPONSE:")
+            # print(repr(response_text))
 
-            save_output(response_text, output_path)
+            save_output(response_text, output_path, image_path)
             print(f"Saved: {output_path}")
 
         except Exception as error:
             print(f"Could not process image {image_path.name} with OpenAI. Error: {error}")
+        finally:
+            time.sleep(15)
+
+
+    ###### Running Anthropic AI
+    for image_path in sorted(IMAGES.iterdir()):
+
+        if image_path.suffix.lower() not in img_ext_allowed:
+            continue
+
+        output_path = ANTHROPIC_OUTPUT / f"{image_path.stem}.json"
+
+        if output_path.exists():
+            print(f"Skipping Anthropic's model for {image_path.name}: output already exists.")
+            continue
+
+        print(f"Processing {image_path.name} with Anthropic")
+
+        try:
+            response_text = process_image_anthropic(anthropic_client, image_path)
+
+            # print("ANTHROPIC RAW RESPONSE:")
+            # print(repr(response_text))
+
+            save_output(response_text, output_path, image_path)
+            print(f"Saved: {output_path}")
+
+        except Exception as error:
+            print(f"Could not process image {image_path.name} with Anthropic. Error: {error}")
         finally:
             time.sleep(15)
 
