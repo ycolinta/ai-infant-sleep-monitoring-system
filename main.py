@@ -12,6 +12,7 @@ from google import genai
 from openai import OpenAI
 from anthropic import Anthropic
 
+# main project folder
 PROJECT_FOLDER = Path(__file__).parent
 
 IMAGES = PROJECT_FOLDER / "images"

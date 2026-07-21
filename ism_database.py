@@ -1,14 +1,17 @@
 import sqlite3
 from pathlib import Path
 
+# main project folder
+PROJECT_FOLDER = Path(__file__).parent
 
-DATABASE_FOLDER = Path(__file__).parent / "database"
+DATABASE_FOLDER = PROJECT_FOLDER / "database"
 DATABASE_PATH = DATABASE_FOLDER / "ism.db"
+IMAGES = PROJECT_FOLDER / "images"
 
 
 def initialize_db():
     """
-    This function creates the infant sleep monitoring system database
+    Create sleep monitoring system database
     and its required tables.
     """
 
@@ -18,11 +21,11 @@ def initialize_db():
     try:
         # Creates the database folder if it does not already exist
         DATABASE_FOLDER.mkdir(parents=True, exist_ok=True)
-
+        # connect to db
         sqlite_connection = sqlite3.connect(DATABASE_PATH)
         cursor = sqlite_connection.cursor()
 
-        # Enables enforcement of foreign-key relationships in SQLite
+        # Enables foreign-key relationships in SQLite
         cursor.execute("PRAGMA foreign_keys = ON;")
 
         # ******* Create 'Model' table *******
@@ -73,12 +76,14 @@ def initialize_db():
 
         cursor.execute(create_table_response)
 
+        # Save the tables created
         sqlite_connection.commit()
 
         print(f"Database initialized successfully: {DATABASE_PATH}")
         return True
 
     except sqlite3.Error as error:
+        # if something fails, go back and undo changes
         if sqlite_connection is not None:
             sqlite_connection.rollback()
 
@@ -86,6 +91,7 @@ def initialize_db():
         return False
 
     finally:
+        # Close cursor and connection
         if cursor is not None:
             cursor.close()
 
@@ -93,14 +99,14 @@ def initialize_db():
             sqlite_connection.close()
 
 
-# Helper function to connect to the database
 def get_db_connection():
     """
-    Creates and returns a connection to the infant sleep monitoring
-    system database.
+    Helper function that opens and returns a connection to the database.
     """
 
     connection = sqlite3.connect(DATABASE_PATH)
+
+    # Rows to be accessed by column names
     connection.row_factory = sqlite3.Row
 
     # Foreign-key enforcement must be enabled for each connection
@@ -109,5 +115,86 @@ def get_db_connection():
     return connection
 
 
+def insert_models():
+    """
+    Inserts different intelligent models, including human, into the Model table.
+    """
+
+    models = [
+        ("Human-Parent Assessor", 1),
+        ("Gemini 2.5 Flash", 0),
+        ("GPT-4.1 Mini", 0),
+        ("Claude Sonnet 4-6", 0)
+    ]
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Insert all model types
+        cursor.executemany (
+            """
+            INSERT INTO Model (model_name, model_is_human)
+            VALUES (?, ?);
+            """,
+            models
+        )
+
+        connection.commit()
+        print("Model records inserted successfully.")
+
+    except sqlite3.Error as error:
+        connection.rollback()
+        print(f"Failed to insert model records: {error}")
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def insert_images():
+    """
+    Inserts image metadata for each image found in
+    'images' folder.
+    """
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Process every data in the images folder
+        for image_path in IMAGES.iterdir():
+            # Skip non-file entries
+            if not image_path.is_file():
+                continue
+
+            # Store a relative path to the project folder
+            relative_path = image_path.relative_to(Path(__file__).parent)
+
+            cursor.execute(
+                """
+                INSERT INTO Images (file_name, file_ext, file_path)
+                VALUES (?, ?, ?);
+                """,
+                (
+                    image_path.name,
+                    image_path.suffix.lower(),
+                    str(relative_path)
+                )
+            )
+
+        connection.commit()
+        print("Images have been inserted successfully.")
+
+    except sqlite3.Error as error:
+        connection.rollback()
+        print(f"Failed to insert image records: {error}")
+
+    finally:
+        cursor.close()
+        connection.close()
+
 if __name__ == "__main__":
-    initialize_db()
+    if initialize_db():
+        insert_models()
+        insert_images()
