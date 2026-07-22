@@ -1,4 +1,5 @@
 import sqlite3
+import json
 from pathlib import Path
 
 # main project folder
@@ -7,7 +8,17 @@ PROJECT_FOLDER = Path(__file__).parent
 DATABASE_FOLDER = PROJECT_FOLDER / "database"
 DATABASE_PATH = DATABASE_FOLDER / "ism.db"
 IMAGES = PROJECT_FOLDER / "images"
+RESULTS_FOLDER = PROJECT_FOLDER / "results"
+GEMINI_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_outputs"
+GEMINI_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_invalid_outputs"
 
+OPENAI_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_outputs"
+OPENAI_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_invalid_outputs"
+
+ANTHROPIC_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_outputs"
+ANTHROPIC_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_invalid_outputs"
+
+PARENT_OUTPUT = PROJECT_FOLDER / "parent_assessments"
 
 def initialize_db():
     """
@@ -194,7 +205,207 @@ def insert_images():
         cursor.close()
         connection.close()
 
+
+def get_image_id(file_name):
+    """
+    Returns the image_id associated with the given file name.
+    """
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute(
+            """
+            SELECT image_id
+            FROM Images
+            WHERE file_name = ?;
+            """,
+            (file_name,)
+        )
+
+        result = cursor.fetchone()
+
+        if result is None:
+            raise ValueError(f"Image '{file_name}' was not found.")
+
+        return result["image_id"]
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def get_model_id(model_name):
+    """
+    Returns the model_id associated with the given model name.
+    """
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute(
+            """
+            SELECT model_id
+            FROM Model
+            WHERE model_name = ?;
+            """,
+            (model_name,)
+        )
+
+        result = cursor.fetchone()
+
+        if result is None:
+            raise ValueError(f"Model '{model_name}' was not found.")
+
+        return result["model_id"]
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def populate_response_table(model_name, output_folder):
+    """
+    Reads JSON files from one model's output folder
+    and inserts responses that are not already stored.
+    """
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Find the model's database ID
+        cursor.execute(
+            """
+            SELECT model_id
+            FROM Model
+            WHERE model_name = ?;
+            """,
+            (model_name,)
+        )
+
+        model_record = cursor.fetchone()
+
+        if model_record is None:
+            print(f"Model was not found: {model_name}")
+            return False
+
+        model_id = model_record["model_id"]
+
+        # Process every JSON file in the output folder
+        for json_path in output_folder.iterdir():
+
+            if not json_path.is_file() or json_path.suffix.lower() != ".json":
+                continue
+
+            with json_path.open("r", encoding="utf-8") as json_file:
+                response = json.load(json_file)
+
+            # Find the image's database ID
+            cursor.execute(
+                """
+                SELECT image_id
+                FROM Images
+                WHERE file_name = ?;
+                """,
+                (response["file_name"],)
+            )
+
+            image_record = cursor.fetchone()
+
+            if image_record is None:
+                print(f"Image was not found: {response['file_name']}")
+                continue
+
+            image_id = image_record["image_id"]
+
+            # Check whether this response was already inserted
+            cursor.execute(
+                """
+                SELECT response_id
+                FROM Response
+                WHERE image_id = ?
+                  AND model_id = ?;
+                """,
+                (image_id, model_id)
+            )
+
+            existing_response = cursor.fetchone()
+
+            if existing_response is not None:
+                print(
+                    f"Response already exists for "
+                    f"{response['file_name']} from {model_name}. Skipping."
+                )
+                continue
+
+            # Insert the new response
+            cursor.execute(
+                """
+                INSERT INTO Response (
+                    image_id,
+                    model_id,
+                    no_apparent_safety_concerns,
+                    possible_safety_concerns,
+                    serious_safety_concerns,
+                    explanation
+                )
+                VALUES (?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    image_id,
+                    model_id,
+                    int(response["no_apparent_safety_concerns"]),
+                    int(response["possible_safety_concerns"]),
+                    int(response["serious_safety_concerns"]),
+                    response["explanation"]
+                )
+            )
+
+            print(
+                f"Inserted {model_name} response for "
+                f"{response['file_name']}."
+            )
+
+        connection.commit()
+        return True
+
+    except (
+            sqlite3.Error,
+            OSError,
+            json.JSONDecodeError,
+            KeyError
+    ) as error:
+        connection.rollback()
+        print(f"Failed to populate Response table: {error}")
+        return False
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
 if __name__ == "__main__":
     if initialize_db():
-        insert_models()
-        insert_images()
+        populate_response_table(
+            "Gemini 2.5 Flash",
+            GEMINI_OUTPUT
+        )
+
+        populate_response_table(
+            "GPT-4.1 Mini",
+            OPENAI_OUTPUT
+        )
+
+        populate_response_table(
+            "Claude Sonnet 4-6",
+            ANTHROPIC_OUTPUT
+        )
+
+        populate_response_table(
+            "Human-Parent Assessor",
+            PARENT_OUTPUT
+        )
+
