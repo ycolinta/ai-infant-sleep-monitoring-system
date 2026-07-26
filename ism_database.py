@@ -9,16 +9,25 @@ DATABASE_FOLDER = PROJECT_FOLDER / "database"
 DATABASE_PATH = DATABASE_FOLDER / "ism.db"
 IMAGES = PROJECT_FOLDER / "images"
 RESULTS_FOLDER = PROJECT_FOLDER / "results"
+
+# Gemini's Flash model
 GEMINI_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_outputs"
 GEMINI_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_invalid_outputs"
 
+# OpenAI's GPT model
 OPENAI_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_outputs"
 OPENAI_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_invalid_outputs"
 
+# Anthropic's claude model
 ANTHROPIC_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_outputs"
 ANTHROPIC_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_invalid_outputs"
 
+# Mistral's model
+MISTRAL_OUTPUT = RESULTS_FOLDER / "updated_run" / "mistral_outputs"
+MISTRAL_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "mistral_invalid_outputs"
+
 PARENT_OUTPUT = PROJECT_FOLDER / "parent_assessments"
+
 
 def initialize_db():
     """
@@ -135,7 +144,8 @@ def insert_models():
         ("Human-Parent Assessor", 1),
         ("Gemini 2.5 Flash", 0),
         ("GPT-4.1 Mini", 0),
-        ("Claude Sonnet 4-6", 0)
+        ("Claude Sonnet 4-6", 0),
+        ("Mistral Medium 3.5", 0)
     ]
 
     connection = get_db_connection()
@@ -145,14 +155,14 @@ def insert_models():
         # Insert all model types
         cursor.executemany (
             """
-            INSERT INTO Model (model_name, model_is_human)
+            INSERT OR IGNORE INTO Model (model_name, model_is_human)
             VALUES (?, ?);
             """,
             models
         )
 
         connection.commit()
-        print("Model records inserted successfully.")
+        print("Model records checked and inserted successfully.")
 
     except sqlite3.Error as error:
         connection.rollback()
@@ -389,6 +399,9 @@ def populate_response_table(model_name, output_folder):
 
 if __name__ == "__main__":
     if initialize_db():
+
+        insert_models()
+
         populate_response_table(
             "Gemini 2.5 Flash",
             GEMINI_OUTPUT
@@ -402,6 +415,11 @@ if __name__ == "__main__":
         populate_response_table(
             "Claude Sonnet 4-6",
             ANTHROPIC_OUTPUT
+        )
+
+        populate_response_table(
+            "Mistral Medium 3.5",
+            MISTRAL_OUTPUT
         )
 
         populate_response_table(

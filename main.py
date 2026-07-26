@@ -188,6 +188,7 @@ def process_image_anthropic(client, image_path):
 
     return response.content[0].text
 
+
 def process_image_mistral(client, image_path):
     """
     Sends one image and the prompt to Mistral
@@ -198,7 +199,7 @@ def process_image_mistral(client, image_path):
         image_data = base64.b64encode(image_file.read()).decode("utf-8")
 
     response = client.chat.complete(
-        model="mistral-medium-2508",
+        model="mistral-medium-3.5",
         messages=[
             {
                 "role": "user",
