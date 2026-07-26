@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The baby is sleeping on its back in a clear, flat space with a fitted sheet. There are no loose blankets, pillows, or toys in the immediate sleeping area, which reduces the risk of suffocation or Sudden Infant Death Syndrome (SIDS). The mesh sides of the sleeping area appear to be secure and appropriate for a safe sleep environment.",
+    "explanation": "The baby is swaddled and wearing a hat, which may pose a risk of overheating. Additionally, the sleep environment includes a patterned blanket, which could be a suffocation hazard if loose.",
     "file_name": "image12.jpg"
 }

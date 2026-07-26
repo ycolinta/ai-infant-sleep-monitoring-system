@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The child is sleeping on a firm surface with a fitted sheet. There are no visible loose beddings, pillows, or soft toys near the child's face that could pose a risk of suffocation or Sudden Infant Death Syndrome (SIDS). The environment appears to be appropriately maintained for child safety.",
+    "explanation": "The child is sleeping on a soft surface with blankets and pillows, which may pose a risk of suffocation or Sudden Infant Death Syndrome (SIDS) for very young children. The environment appears cluttered, which could also be a concern.",
     "file_name": "image22.jpg"
 }

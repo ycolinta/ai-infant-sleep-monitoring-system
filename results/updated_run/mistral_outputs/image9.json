@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The baby is sleeping on its back in a clear, flat space with no loose bedding, pillows, or toys. The mesh sides of the sleeping area appear to be breathable, and the baby is swaddled appropriately.",
+    "explanation": "The sleep environment includes a soft blanket and a padded crib bumper, which may pose suffocation or Sudden Infant Death Syndrome (SIDS) risks for a newborn. The crib appears to have a firm mattress, but the additional bedding and bumper are potential concerns.",
     "file_name": "image9.jpg"
 }

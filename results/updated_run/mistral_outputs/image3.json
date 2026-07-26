@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The child is sleeping in a crib with no visible loose bedding, pillows, or toys that could pose a risk. The crib bars appear to be appropriately spaced, and there are no visible hazards within the crib or immediate surroundings.",
+    "explanation": "The image shows a baby sleeping in a crib with loose blankets and soft bedding, which can pose a risk of suffocation or Sudden Infant Death Syndrome (SIDS).",
     "file_name": "image3.jpeg"
 }

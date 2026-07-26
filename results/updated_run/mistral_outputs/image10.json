@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The child is sleeping on a flat surface with no visible loose bedding, pillows, or soft toys that could pose a risk. The sleepwear appears to be appropriate for sleep.",
+    "explanation": "The child is sleeping on a flat surface with a fitted sheet, but the clothing appears loose and may pose a minor risk of entanglement or overheating. No immediate serious hazards are visible.",
     "file_name": "image10.jpg"
 }

@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The child is sleeping on a firm mattress with a fitted sheet. The sleep environment appears clear of loose bedding, pillows, and soft toys, which reduces the risk of suffocation or Sudden Infant Death Syndrome (SIDS). The headboard and surrounding area do not present any immediate hazards.",
+    "explanation": "The child is sleeping on a bed with a patterned sheet, but the head is near the edge of the bed, which could pose a risk of falling. Additionally, the bedding appears loose, which may increase the risk of suffocation or entanglement.",
     "file_name": "image2.jpg"
 }

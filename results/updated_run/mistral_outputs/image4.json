@@ -1,7 +1,7 @@
 {
     "no_apparent_safety_concerns": false,
-    "possible_safety_concerns": true,
-    "serious_safety_concerns": false,
-    "explanation": "The child is sleeping on a mesh surface, which may not provide adequate support or comfort. Additionally, the child is near a railing, which could pose a risk if not properly secured.",
+    "possible_safety_concerns": false,
+    "serious_safety_concerns": true,
+    "explanation": "The child is sleeping on a hard, flat surface (likely a floor) without a proper crib or bed, which poses risks of suffocation, temperature regulation issues, and lack of protection from falls or environmental hazards.",
     "file_name": "image4.jpeg"
 }

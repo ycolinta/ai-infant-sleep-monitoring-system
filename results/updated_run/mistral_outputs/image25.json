@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The baby is sleeping on its back in a crib with a fitted sheet. There are no visible loose bedding, pillows, or soft toys that could pose a risk of suffocation or Sudden Infant Death Syndrome (SIDS). The crib bumpers appear to be securely fastened.",
+    "explanation": "The crib contains loose blankets and soft bedding, which can pose a suffocation or Sudden Infant Death Syndrome (SIDS) risk for infants. The American Academy of Pediatrics recommends a bare crib with a firm mattress and fitted sheet only.",
     "file_name": "image25.jpeg"
 }

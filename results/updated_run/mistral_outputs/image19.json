@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The baby is sleeping on its back on a flat surface with no loose bedding, pillows, or soft toys nearby, which follows safe sleep guidelines.",
+    "explanation": "The baby is sleeping on a soft, colorful blanket which may pose a suffocation or Sudden Infant Death Syndrome (SIDS) risk. Additionally, the baby is wearing a pacifier, which is generally safe but should be monitored.",
     "file_name": "image19.jpg"
 }

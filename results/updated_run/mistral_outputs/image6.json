@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The child is in a crib with no visible loose bedding, pillows, or toys that could pose a risk. The crib bars are appropriately spaced, and the child appears to be in a safe sleeping position.",
+    "explanation": "The crib appears to have a child standing in it, which may pose a risk of falling. Additionally, the image quality is low, making it difficult to assess other potential hazards.",
     "file_name": "image6.jpg"
 }

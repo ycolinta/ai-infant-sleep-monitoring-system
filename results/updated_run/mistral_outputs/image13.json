@@ -1,7 +1,7 @@
 {
-    "no_apparent_safety_concerns": true,
-    "possible_safety_concerns": false,
+    "no_apparent_safety_concerns": false,
+    "possible_safety_concerns": true,
     "serious_safety_concerns": false,
-    "explanation": "The baby is sleeping on its back in a clear, flat space with no loose bedding, pillows, or soft toys nearby, which are common hazards. The mesh sides of the sleeping area appear to be breathable, reducing the risk of suffocation.",
+    "explanation": "The sleep environment includes a soft, colorful blanket with loose fabric and a swaddle, which may pose a suffocation or Sudden Infant Death Syndrome (SIDS) risk if not properly secured. The mesh sides of the bassinet appear intact, but the bedding and swaddle require careful monitoring.",
     "file_name": "image13.jpg"
 }
