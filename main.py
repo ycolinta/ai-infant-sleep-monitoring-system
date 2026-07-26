@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from google import genai
 from openai import OpenAI
 from anthropic import Anthropic
+from mistralai.client import Mistral
 
 # main project folder
 PROJECT_FOLDER = Path(__file__).parent
@@ -18,14 +19,21 @@ PROJECT_FOLDER = Path(__file__).parent
 IMAGES = PROJECT_FOLDER / "images"
 RESULTS_FOLDER = PROJECT_FOLDER / "results"
 
+# Gemini's Flash model
 GEMINI_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_outputs"
 GEMINI_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "gemini_invalid_outputs"
 
+# OpenAI's GPT model
 OPENAI_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_outputs"
 OPENAI_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "openai_invalid_outputs"
 
+# Anthropic's claude model
 ANTHROPIC_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_outputs"
 ANTHROPIC_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_invalid_outputs"
+
+# Mistral's model
+MISTRAL_OUTPUT = RESULTS_FOLDER / "updated_run" / "mistral_outputs"
+MISTRAL_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "mistral_invalid_outputs"
 
 PROMPT = """
         You are assisting with the assessment of child sleep environments for a computer science research project.
@@ -180,6 +188,39 @@ def process_image_anthropic(client, image_path):
 
     return response.content[0].text
 
+def process_image_mistral(client, image_path):
+    """
+    Sends one image and the prompt to Mistral
+    and returns the model's response text.
+    """
+
+    with image_path.open("rb") as image_file:
+        image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+    response = client.chat.complete(
+        model="mistral-medium-2508",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": PROMPT
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": f"data:image/jpeg;base64,{image_data}"
+                    }
+                ]
+            }
+        ],
+        response_format={
+            "type": "json_object"
+        }
+    )
+
+    return response.choices[0].message.content
+
 
 def clean_output_text(output_text):
     """
@@ -292,6 +333,7 @@ def main():
     gemini_api_key = os.getenv("GEMINI_API_KEY")
     openai_api_key = os.getenv("OPENAI_API_KEY")
     anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    mistral_api_key = os.getenv("MISTRAL_API_KEY")
 
     if not gemini_api_key:
         raise ValueError("Missing GEMINI_API_KEY environment variable")
@@ -302,9 +344,13 @@ def main():
     if not anthropic_api_key:
         raise ValueError("Missing ANTHROPIC_API_KEY environment variable")
 
+    if not mistral_api_key:
+        raise ValueError("Missing MISTRAL_API_KEY environment variable")
+
     gemini_client = genai.Client(api_key=gemini_api_key)
     openai_client = OpenAI(api_key=openai_api_key)
     anthropic_client = Anthropic(api_key=anthropic_api_key)
+    mistral_client = Mistral(api_key=mistral_api_key)
 
     img_ext_allowed = {
         ".jpg",
@@ -411,6 +457,40 @@ def main():
 
         except Exception as error:
             print(f"Could not process image {image_path.name} with Anthropic. Error: {error}")
+        finally:
+            time.sleep(15)
+
+
+    ###### Running Mistral AI
+    for image_path in sorted(IMAGES.iterdir()):
+
+        if image_path.suffix.lower() not in img_ext_allowed:
+            continue
+
+        output_path = MISTRAL_OUTPUT / f"{image_path.stem}.json"
+        invalid_output_path = MISTRAL_INVALID_OUTPUT / f"{image_path.stem}.json"
+
+        if output_path.exists():
+            print(f"Skipping Mistral's model for {image_path.name}: output already exists.")
+            continue
+
+        print(f"Processing {image_path.name} with Mistral")
+
+        try:
+            response_text = process_image_mistral(mistral_client, image_path)
+
+            # print("MISTRAL RAW RESPONSE:")
+            # print(repr(response_text))
+
+            valid_output = save_output(response_text, output_path, invalid_output_path, image_path)
+
+            if valid_output:
+                print(f"Saved: {output_path}")
+            else:
+                print(f"Saved invalid output: {invalid_output_path}")
+
+        except Exception as error:
+            print(f"Could not process image {image_path.name} with Mistral. Error: {error}")
         finally:
             time.sleep(15)
 
