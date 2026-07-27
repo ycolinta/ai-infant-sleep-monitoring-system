@@ -94,7 +94,27 @@ def initialize_db():
             );
         """
 
+        # ******* Create 'InvalidResponse' table *******
+        create_table_invalid_response = """  
+            CREATE TABLE IF NOT EXISTS InvalidResponse (
+                invalid_response_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                image_id INTEGER NOT NULL,
+                model_id INTEGER NOT NULL,
+                raw_response TEXT NOT NULL,
+                explanation_error TEXT NOT NULL,
+        
+                UNIQUE (image_id, model_id),
+        
+                FOREIGN KEY (image_id)
+                    REFERENCES Images(image_id),
+        
+                FOREIGN KEY (model_id)
+                    REFERENCES Model(model_id)
+            );
+        """
+
         cursor.execute(create_table_response)
+        cursor.execute(create_table_invalid_response)
 
         # Save the tables created
         sqlite_connection.commit()
