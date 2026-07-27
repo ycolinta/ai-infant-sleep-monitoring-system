@@ -2,3 +2,8 @@
 .venv/
 __pycache__/
 .idea/
+# Microsoft Office temporary files
+~$*
+*.tmp
+# SQLite database file
+*.db
