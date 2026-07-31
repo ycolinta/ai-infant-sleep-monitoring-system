@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from database import insert_image
-from main import process_img_ai
+from ai_processing import process_img_ai
 
 PROJECT_FOLDER = Path(__file__).parent
 IMAGES_FOLDER = PROJECT_FOLDER / "images"
@@ -55,6 +55,8 @@ def main():
     print(f"Image inserted into database. ID: {image_id}")
 
     print(f"Next step AI processing for: {image_path.name}")
+    process_img_ai(image_path)
+    print(f"AI processing finished for: {image_path.name}")
 
 
 if __name__ == "__main__":

@@ -431,6 +431,6 @@ def process_img_ai(image_path):
                 print(f"Saved invalid output: {invalid_output_path}")
 
         except Exception as error:
-            print(f"Could not process image {image_path.name} with {model_name}. Error:  {error}")
+            print(f"Could not process image {image_path.name} with {model_name}. Error: {error}")
 
 
