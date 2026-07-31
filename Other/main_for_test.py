@@ -99,9 +99,9 @@ def process_image_gemini(client, image_path):
                 "text": PROMPT
             },
             {
-            "type": "image",
-            "uri": uploaded_img.uri,
-            "mime_type": uploaded_img.mime_type
+                "type": "image",
+                "uri": uploaded_img.uri,
+                "mime_type": uploaded_img.mime_type
             }
         ],
         response_format={

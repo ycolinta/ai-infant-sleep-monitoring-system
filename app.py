@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from database import insert_image
+from main import process_img_ai
 
 PROJECT_FOLDER = Path(__file__).parent
 IMAGES_FOLDER = PROJECT_FOLDER / "images"
