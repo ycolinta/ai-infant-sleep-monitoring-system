@@ -1,13 +1,53 @@
 import requests
+from datetime import datetime
+from pathlib import Path
 
-PI_ADDRESS = "http://raspberrypi.local:5000/capture"   # Using Pi's IP address
+PROJECT_FOLDER = Path(__file__).parent
+IMAGES_FOLDER = PROJECT_FOLDER / "images"
 
-response = requests.post(PI_ADDRESS)
+# Raspberry Pi's endpoint
+PI_ADDRESS = "http://raspberrypi.local:5000/capture"
 
-if response.status_code == 200:
-    with open("test.jpg", "wb") as file:
-        file.write(response.content)
 
-    print("Image received")
-else:
-    print("Failed:", response.status_code)
+def capture_img_from_pi():
+    """
+    Make a request to Raspberry Pi to capture an image
+    and save it in the laptop project's images folder
+    """
+    IMAGES_FOLDER.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    image_path = IMAGES_FOLDER / f"capture_{timestamp}.jpg"
+
+    try:
+        response = requests.post(
+            PI_ADDRESS,
+            timeout=30 # After 30 seconds, raise exception
+        )
+
+        response.raise_for_status()
+
+        with image_path.open("wb") as image_file:
+            image_file.write(response.content) # Write JPEG bytes received from RPi
+
+        print(f"Image received and saved {image_path}")
+
+        return image_path
+
+    except requests.RequestException as error:
+        print(f"Error capturing image from Raspberry Pi: {error}")
+        return None
+
+
+def main():
+
+    image_path = capture_img_from_pi()
+
+    if image_path is None:
+        return
+
+    print(f"Next step AI processing for: {image_path.name}")
+
+
+if __name__ == "__main__":
+    main()
