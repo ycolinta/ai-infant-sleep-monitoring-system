@@ -2,6 +2,8 @@ import requests
 from datetime import datetime
 from pathlib import Path
 
+from database import insert_image
+
 PROJECT_FOLDER = Path(__file__).parent
 IMAGES_FOLDER = PROJECT_FOLDER / "images"
 
@@ -45,6 +47,11 @@ def main():
 
     if image_path is None:
         return
+
+    # Insert newly captured image to db
+    image_id = insert_image(image_path)
+
+    print(f"Image inserted into database. ID: {image_id}")
 
     print(f"Next step AI processing for: {image_path.name}")
 
