@@ -173,7 +173,7 @@ def insert_models():
 
     try:
         # Insert all model types
-        cursor.executemany (
+        cursor.executemany(
             """
             INSERT OR IGNORE INTO Model (model_name, model_is_human)
             VALUES (?, ?);
@@ -210,7 +210,7 @@ def insert_images():
                 continue
 
             # Store a relative path to the project folder
-            relative_path = image_path.relative_to(Path(__file__).parent)
+            relative_path = image_path.relative_to(PROJECT_FOLDER)
 
             cursor.execute(
                 """
@@ -230,6 +230,54 @@ def insert_images():
     except sqlite3.Error as error:
         connection.rollback()
         print(f"Failed to insert image records: {error}")
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def insert_image(image_path):
+    """
+    Inserts an image into the Images table.
+    Returns its image id.
+    """
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        relative_path = image_path.relative_to(PROJECT_FOLDER)
+        cursor.execute(
+            """
+            INSERT OR IGNORE INTO Images (
+            file_name,
+            file_ext,
+            file_path
+            )
+            VALUES (?, ?, ?);
+            """,
+            (
+                image_path.name,
+                image_path.suffix.lower(),
+                str(relative_path)
+            )
+        )
+
+        connection.commit()
+        cursor.execute(
+            """
+            SELECT image_id
+            FROM Images
+            WHERE file_name = ?;
+            """,
+            (image_path.name,)
+        )
+
+        result = cursor.fetchone()
+
+        if result is None:
+            raise ValueError(f"Error in retrieving image: {image_path.name}")
+
+        return result["image_id"]
 
     finally:
         cursor.close()
@@ -419,7 +467,6 @@ def populate_response_table(model_name, output_folder):
 
 if __name__ == "__main__":
     if initialize_db():
-
         insert_models()
 
         populate_response_table(
@@ -446,4 +493,3 @@ if __name__ == "__main__":
             "Human-Parent Assessor",
             PARENT_OUTPUT
         )
-
