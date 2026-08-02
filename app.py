@@ -1,11 +1,16 @@
 import requests
+import time
+
 from datetime import datetime
 from pathlib import Path
 
 from database import insert_image
 from ai_processing import process_img_ai
 
+# Main project folder
 PROJECT_FOLDER = Path(__file__).parent
+
+# Folder where images received from Raspberry Pi are saved
 IMAGES_FOLDER = PROJECT_FOLDER / "images"
 
 # Raspberry Pi's endpoint
@@ -15,7 +20,8 @@ PI_ADDRESS = "http://raspberrypi.local:5000/capture"
 def capture_img_from_pi():
     """
     Make a request to Raspberry Pi to capture an image
-    and save it in the laptop project's images folder
+    and save the returned JPEG in the laptop project's images folder.
+    Returns path location of saved image.
     """
     IMAGES_FOLDER.mkdir(parents=True, exist_ok=True)
 
@@ -66,6 +72,37 @@ def run_monitoring_cycle():
     process_img_ai(image_id, image_path)
 
     return True
+
+
+def run_monitoring_session(interval_minutes, duration_hours):
+    """
+    Runs monitoring cycle function repeatedly for the set duration.
+    """
+
+    interval_seconds = interval_minutes * 60
+
+    total_cycles = int((duration_hours * 60) / interval_minutes)
+
+    print(
+        f"Starting monitoring session.\n"
+        f"Duration: {duration_hours} hours\n"
+        f"Interval: {interval_minutes} minutes\n"
+        f"Total captures: {total_cycles}"
+    )
+
+    for cycle in range(total_cycles):
+
+        run_monitoring_cycle()
+
+        # Wait only if another monitoring cycle will be executed.
+        # After the final image, exit the program immediately.
+        if cycle < total_cycles - 1:
+            print(f"Waiting {interval_minutes} minutes.")
+
+            time.sleep(interval_seconds)
+
+    print("\nMonitoring session complete.")
+
 
 def main():
     run_monitoring_cycle()
