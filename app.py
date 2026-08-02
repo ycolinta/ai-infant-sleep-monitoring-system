@@ -42,21 +42,34 @@ def capture_img_from_pi():
         return None
 
 
-def main():
+def run_monitoring_cycle():
+    """
+    This function runs a single infant monitoring cycle.
+    One image is captured, inserted into database, processed
+    by AI models, output responses stored.
+    """
 
     image_path = capture_img_from_pi()
 
+    # Stop the session of the image could not be captured
     if image_path is None:
-        return
+        return False
 
     # Insert newly captured image to db
     image_id = insert_image(image_path)
 
     print(f"Image inserted into database. ID: {image_id}")
 
-    print(f"Next step AI processing for: {image_path.name}")
+    print(f"Performing AI processing for: {image_path.name}")
+
+    # Process the image and associate all outputs with its database ID
     process_img_ai(image_id, image_path)
-    print(f"AI processing finished for: {image_path.name}")
+
+    return True
+
+def main():
+    run_monitoring_cycle()
+    # to add frequency here
 
 
 if __name__ == "__main__":
