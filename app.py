@@ -23,15 +23,15 @@ def capture_img_from_pi():
     image_path = IMAGES_FOLDER / f"capture_{timestamp}.jpg"
 
     try:
-        response = requests.post(
-            PI_ADDRESS,
-            timeout=30 # After 30 seconds, raise exception
-        )
+        # After 30 seconds, raise exception
+        response = requests.post(PI_ADDRESS, timeout=30)
 
+        # Raises http error
         response.raise_for_status()
 
         with image_path.open("wb") as image_file:
-            image_file.write(response.content) # Write JPEG bytes received from RPi
+            # Write JPEG bytes received from RPi to file object image_file
+            image_file.write(response.content)
 
         print(f"Image received and saved {image_path}")
 
