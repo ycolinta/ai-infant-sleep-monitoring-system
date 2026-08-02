@@ -1,0 +1,1 @@
+# script to preview the camera before the actual run
