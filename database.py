@@ -85,7 +85,9 @@ def initialize_db():
                 serious_safety_concerns INTEGER NOT NULL
                     CHECK (serious_safety_concerns IN (0, 1)),
                 explanation TEXT NOT NULL,
-
+                
+                UNIQUE (image_id, model_id),
+                
                 FOREIGN KEY (image_id)
                     REFERENCES Images(image_id),
 
@@ -115,6 +117,15 @@ def initialize_db():
 
         cursor.execute(create_table_response)
         cursor.execute(create_table_invalid_response)
+
+        # Prevent duplicate valid responses for the same image and model
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS
+            idx_response_image_model
+            ON Response (image_id, model_id);
+            """
+        )
 
         # Save the tables created
         sqlite_connection.commit()
@@ -458,6 +469,106 @@ def populate_response_table(model_name, output_folder):
     ) as error:
         connection.rollback()
         print(f"Failed to populate Response table: {error}")
+        return False
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def insert_response(image_id, model_name, response_obj):
+    """
+    Function that inserts one valid AI response into the Response table.
+    """
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        model_id = get_model_id(model_name)
+
+        cursor.execute(
+            """
+            INSERT INTO Response (
+                image_id,
+                model_id,
+                no_apparent_safety_concerns,
+                possible_safety_concerns,
+                serious_safety_concerns,
+                explanation
+            )
+            VALUES (?, ?, ?, ?, ?, ?);
+            """,
+            (
+                image_id,
+                model_id,
+                int(response_obj["no_apparent_safety_concerns"]),
+                int(response_obj["possible_safety_concerns"]),
+                int(response_obj["serious_safety_concerns"]),
+                response_obj["explanation"]
+            )
+        )
+
+        connection.commit()
+        print(f"Inserted {model_name} response for image ID {image_id}.")
+        return True
+
+    except sqlite3.IntegrityError as error:
+        connection.rollback()
+        print(f"Could not insert {model_name} response for image ID {image_id}: {error}")
+        return False
+
+    except (sqlite3.Error, KeyError, ValueError) as error:
+        connection.rollback()
+        print(f"Failed to insert valid response: {error}")
+        return False
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def insert_invalid_response(image_id, model_name, raw_response, explanation_error):
+    """
+    Inserts one invalid AI response into the InvalidResponse table.
+    """
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        model_id = get_model_id(model_name)
+
+        cursor.execute(
+            """
+            INSERT INTO InvalidResponse (
+                image_id,
+                model_id,
+                raw_response,
+                explanation_error
+            )
+            VALUES (?, ?, ?, ?);
+            """,
+            (
+                image_id,
+                model_id,
+                raw_response,
+                explanation_error
+            )
+        )
+
+        connection.commit()
+        print(f"Inserted invalid {model_name} response for image ID {image_id}.")
+        return True
+
+    except sqlite3.IntegrityError as error:
+        connection.rollback()
+        print(f"Could not insert invalid {model_name} response for image ID {image_id}: {error}")
+        return False
+
+    except (sqlite3.Error, ValueError) as error:
+        connection.rollback()
+        print(f"Failed to insert invalid response: {error}")
         return False
 
     finally:

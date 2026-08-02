@@ -55,7 +55,7 @@ def main():
     print(f"Image inserted into database. ID: {image_id}")
 
     print(f"Next step AI processing for: {image_path.name}")
-    process_img_ai(image_path)
+    process_img_ai(image_id, image_path)
     print(f"AI processing finished for: {image_path.name}")
 
 

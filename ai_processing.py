@@ -3,7 +3,6 @@
 
 import json
 import os
-import time
 import base64
 
 from pathlib import Path
@@ -12,6 +11,8 @@ from google import genai
 from openai import OpenAI
 from anthropic import Anthropic
 from mistralai.client import Mistral
+
+from database import insert_response, insert_invalid_response
 
 # main project folder
 PROJECT_FOLDER = Path(__file__).parent
@@ -135,7 +136,7 @@ def process_image_openai(client, image_path):
                     },
                     {
                         "type": "input_image",
-                        "image_url": f"data:image/jpeg;base64,"f"{image_data}"
+                        "image_url": f"data:image/jpeg;base64,{image_data}"
                     }
                 ]
             }
@@ -312,7 +313,7 @@ def save_output(output_text, output_path, invalid_output_path, image_path):
         with output_path.open("w", encoding="utf-8") as out_file:
             json.dump(string_to_obj, out_file, indent=4)
 
-        return True
+        return True, string_to_obj, None
 
     except (json.JSONDecodeError, ValueError) as error:
         invalid_output = {
@@ -324,7 +325,7 @@ def save_output(output_text, output_path, invalid_output_path, image_path):
         with invalid_output_path.open("w", encoding="utf-8") as invalid_output_file:
             json.dump(invalid_output, invalid_output_file, indent=4)
 
-        return False
+        return False, invalid_output, error
 
 
 def create_ai_clients():
@@ -357,7 +358,7 @@ def create_ai_clients():
     return gemini_client, openai_client, anthropic_client, mistral_client
 
 
-def process_img_ai(image_path):
+def process_img_ai(image_id, image_path):
     """
     Send one image to each AI model and save
     valid or invalid output response for each.
@@ -370,32 +371,32 @@ def process_img_ai(image_path):
     ## client
     ## AI process function for each
     ## valid output folder for each
-    ## valid output folder for each
+    ## invalid output folder for each
 
     model_jobs = [
         (
-            "Gemini",
+            "Gemini 2.5 Flash",
             gemini_client,
             process_image_gemini,
             GEMINI_OUTPUT,
             GEMINI_INVALID_OUTPUT
         ),
         (
-            "OpenAI",
+            "GPT-4.1 Mini",
             openai_client,
             process_image_openai,
             OPENAI_OUTPUT,
             OPENAI_INVALID_OUTPUT
         ),
         (
-            "Anthropic",
+            "Claude Sonnet 4-6",
             anthropic_client,
             process_image_anthropic,
             ANTHROPIC_OUTPUT,
             ANTHROPIC_INVALID_OUTPUT
         ),
         (
-            "Mistral",
+            "Mistral Medium 3.5",
             mistral_client,
             process_image_mistral,
             MISTRAL_OUTPUT,
@@ -418,7 +419,7 @@ def process_img_ai(image_path):
         try:
             response_text = process_function(client, image_path)
 
-            valid_output = save_output(
+            valid_output, response_data, validation_error = save_output(
                 response_text,
                 output_path,
                 invalid_output_path,
@@ -426,8 +427,19 @@ def process_img_ai(image_path):
             )
 
             if valid_output:
+                insert_response(
+                    image_id,
+                    model_name,
+                    response_data
+                )
                 print(f"Saved valid output: {output_path}")
             else:
+                insert_invalid_response(
+                    image_id,
+                    model_name,
+                    response_data["raw_response"],
+                    response_data["explanation_error"]
+                )
                 print(f"Saved invalid output: {invalid_output_path}")
 
         except Exception as error:
