@@ -52,7 +52,7 @@ def run_monitoring_cycle():
     """
     This function runs a single infant monitoring cycle.
     One image is captured, inserted into database, processed
-    by AI models, output responses stored.
+    by AI models. Returns image_id of the captures images.
     """
 
     image_path = capture_img_from_pi()
@@ -71,17 +71,20 @@ def run_monitoring_cycle():
     # Process the image and associate all outputs with its database ID
     process_img_ai(image_id, image_path)
 
-    return True
+    return image_id
 
 
 def run_monitoring_session(interval_minutes, duration_hours):
     """
     Runs monitoring cycle function repeatedly for the set duration.
+    Returns a list containing the image IDs created during the run.
     """
 
     interval_seconds = interval_minutes * 60
 
     total_cycles = int((duration_hours * 60) / interval_minutes)
+
+    session_img_ids = []
 
     print(
         f"Starting monitoring session.\n"
@@ -92,21 +95,25 @@ def run_monitoring_session(interval_minutes, duration_hours):
 
     for cycle in range(total_cycles):
 
-        run_monitoring_cycle()
+        image_id = run_monitoring_cycle()
+
+        if image_id is not None:
+            session_img_ids.append(image_id)
 
         # Wait only if another monitoring cycle will be executed.
         # After the final image, exit the program immediately.
         if cycle < total_cycles - 1:
             print(f"Waiting {interval_minutes} minutes.")
-
             time.sleep(interval_seconds)
 
     print("\nMonitoring session complete.")
 
+    return session_img_ids
+
 
 def main():
-    run_monitoring_cycle()
     # to add frequency here
+    run_monitoring_session(interval_minutes=1, duration_hours=0.05)
 
 
 if __name__ == "__main__":
