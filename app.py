@@ -113,7 +113,7 @@ def run_monitoring_session(interval_minutes, duration_hours):
 
 def main():
     # to add frequency here
-    run_monitoring_session(interval_minutes=1, duration_hours=0.05)
+    run_monitoring_session(interval_minutes=1, duration_hours=1/60)
 
 
 if __name__ == "__main__":
