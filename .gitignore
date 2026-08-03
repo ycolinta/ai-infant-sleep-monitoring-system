@@ -8,3 +8,4 @@ __pycache__/
 # SQLite database file
 *.db
 previews/
+capture/
