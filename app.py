@@ -6,6 +6,7 @@ from pathlib import Path
 
 from database import insert_image
 from ai_processing import process_img_ai
+from parent_gui import open_parent_gui
 
 # Main project folder
 PROJECT_FOLDER = Path(__file__).parent
@@ -113,7 +114,10 @@ def run_monitoring_session(interval_minutes, duration_hours):
 
 def main():
     # to add frequency here
-    run_monitoring_session(interval_minutes=1, duration_hours=1/60)
+    session_img_ids = run_monitoring_session(interval_minutes=1, duration_hours=1/60)
+
+    if session_img_ids:
+        open_parent_gui(session_img_ids)
 
 
 if __name__ == "__main__":
