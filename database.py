@@ -325,6 +325,37 @@ def get_image_id(file_name):
         connection.close()
 
 
+def get_images_by_ids(image_ids):
+    """
+    Returns the images associated with the given image ids.
+    """
+    if not image_ids:
+        return []
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Parameterized query here
+        placeholders = ", ".join("?" for _ in image_ids)
+        cursor.execute(
+            f"""
+            SELECT
+                image_id,
+                file_name,
+                file_path
+            FROM Images
+            WHERE image_id IN ({placeholders})
+            ORDER BY image_id;
+            """,
+            image_ids
+        )
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        connection.close()
+
+
 def get_model_id(model_name):
     """
     Returns the model_id associated with the given model name.
