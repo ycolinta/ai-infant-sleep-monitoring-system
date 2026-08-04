@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from database import insert_image, get_comparison_table, print_comparison_table
+from database import insert_image, get_comparison_table, print_comparison_table, summarize_session_comparisons, print_summary_comparisons
 from ai_processing import process_img_ai
 from parent_gui import open_parent_gui
 
@@ -124,6 +124,10 @@ def main():
     comparison_rows = get_comparison_table(session_img_ids)
 
     print_comparison_table(comparison_rows)
+
+    model_summary = summarize_session_comparisons(comparison_rows)
+
+    print_summary_comparisons(model_summary)
 
 
 if __name__ == "__main__":

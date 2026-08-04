@@ -728,18 +728,18 @@ def print_comparison_table(comparison_rows):
 
     print(
         f"{'Image File':<30}"
-        f"{'AI Model':<15}"
+        f"{'AI Model':<20}"
         f"{'Parent Truth Label':<30}"
         f"{'AI Model Label':<30}"
         f"{'Match':<10}"
     )
 
-    print("_" * 120)
+    print("_" * 150)
 
     for row in comparison_rows:
         print(
             f"{row['file_name']:<30}"
-            f"{row['ai_model_name']:<15}"
+            f"{row['ai_model_name']:<20}"
             f"{row['parent_truth_label']:<30}"
             f"{row['ai_model_label']:<30}"
             f"{row['exact_label_match']:<10}"
@@ -748,7 +748,60 @@ def print_comparison_table(comparison_rows):
         print(f"Parent Explanation: {row['parent_explanation']}")
         print(f"AI Model Explanation: {row['ai_model_explanation']}")
 
-        print("_" * 120)
+        print("_" * 150)
+
+
+def summarize_session_comparisons(comparison_rows):
+    """
+    Calculates the agreement between each AI model
+    and the parent truth labels for one monitoring session.
+    Returns a dictionary containing:
+        - number of comparisons
+        - matching assessments
+        - agreement percentage
+    """
+
+    model_summary = {}
+
+    for row in comparison_rows:
+
+        model_name = row["ai_model_name"]
+
+        if model_name not in model_summary:
+
+            model_summary[model_name] = {
+                "total_images": 0,
+                "exact_matches": 0,
+                "agreement_percentage": 0.0
+            }
+
+        model_summary[model_name]["total_images"] += 1
+
+        if row["exact_label_match"] == "Yes":
+            model_summary[model_name]["exact_matches"] += 1
+
+    # Calculate agreement percentage
+    for summary in model_summary.values():
+        summary["agreement_percentage"] = (summary["exact_matches"]/ summary["total_images"]) * 100
+
+    return model_summary
+
+
+def print_summary_comparisons(model_summary):
+    """"
+    Prints the agreement between each AI model
+    """
+    print("\nAgreement Summary")
+    print("-" * 40)
+
+    for model_name, summary in model_summary.items():
+
+        print(
+            f"{model_name:<20}"
+            f"{summary['exact_matches']} / "
+            f"{summary['total_images']} "
+            f"({summary['agreement_percentage']:.1f}%)"
+        )
 
 
 if __name__ == "__main__":
