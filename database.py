@@ -26,6 +26,9 @@ ANTHROPIC_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "anthropic_invalid_o
 MISTRAL_OUTPUT = RESULTS_FOLDER / "updated_run" / "mistral_outputs"
 MISTRAL_INVALID_OUTPUT = RESULTS_FOLDER / "updated_run" / "mistral_invalid_outputs"
 
+# Parent's model
+PARENT_MODEL_NAME = "Human-Parent Assessor"
+
 PARENT_OUTPUT = PROJECT_FOLDER / "parent_assessments"
 
 
@@ -601,6 +604,110 @@ def insert_invalid_response(image_id, model_name, raw_response, explanation_erro
         connection.rollback()
         print(f"Failed to insert invalid response: {error}")
         return False
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def get_comparison_table(image_ids):
+    """
+    Function that compares each AI model output response with parents
+    for the provided image unique ID and retrieves data of the row:
+        - Image filename, AI model name, parent truth label, AI model label
+        - Whether the labels match y/n
+        - Parent explanation
+        - AI model explanation
+    """
+    if not image_ids:
+        return []
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Create one SQL placeholder for each image ID.
+        placeholders = ", ".join(
+            "?" for _ in image_ids
+        )
+
+        cursor.execute(
+            f"""
+            SELECT
+                i.image_id,
+                i.file_name,
+
+                ai_model.model_name
+                    AS ai_model_name,
+
+                CASE
+                    WHEN parent_response.no_apparent_safety_concerns = 1
+                        THEN 'No apparent safety concerns'
+                    WHEN parent_response.possible_safety_concerns = 1
+                        THEN 'Possible safety concerns'
+                    WHEN parent_response.serious_safety_concerns = 1
+                        THEN 'Serious safety concerns'
+                END AS parent_truth_label,
+
+                CASE
+                    WHEN ai_response.no_apparent_safety_concerns = 1
+                        THEN 'No apparent safety concerns'
+                    WHEN ai_response.possible_safety_concerns = 1
+                        THEN 'Possible safety concerns'
+                    WHEN ai_response.serious_safety_concerns = 1
+                        THEN 'Serious safety concerns'
+                END AS ai_model_label,
+
+                CASE
+                    WHEN
+                        parent_response.no_apparent_safety_concerns
+                        = ai_response.no_apparent_safety_concerns
+                    AND
+                        parent_response.possible_safety_concerns
+                        = ai_response.possible_safety_concerns
+                    AND
+                        parent_response.serious_safety_concerns
+                        = ai_response.serious_safety_concerns
+                    THEN 'Yes'
+                    ELSE 'No'
+                END AS exact_label_match,
+
+                parent_response.explanation
+                    AS parent_explanation,
+
+                ai_response.explanation
+                    AS ai_model_explanation
+
+            FROM Images AS i
+
+            JOIN Response AS parent_response
+                ON i.image_id = parent_response.image_id
+
+            JOIN Model AS parent_model
+                ON parent_response.model_id = parent_model.model_id
+
+            JOIN Response AS ai_response
+                ON i.image_id = ai_response.image_id
+
+            JOIN Model AS ai_model
+                ON ai_response.model_id = ai_model.model_id
+
+            WHERE i.image_id IN ({placeholders})
+              AND parent_model.model_name = ?
+              AND ai_model.model_name != ?
+
+            ORDER BY 
+                i.image_id,
+                ai_model.model_name;
+            """,
+            (
+                *image_ids,
+                PARENT_MODEL_NAME,
+                PARENT_MODEL_NAME
+            )
+        )
+
+        return cursor.fetchall()
 
     finally:
         cursor.close()
