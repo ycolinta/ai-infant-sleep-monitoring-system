@@ -714,6 +714,44 @@ def get_comparison_table(image_ids):
         connection.close()
 
 
+def print_comparison_table(comparison_rows):
+    """
+    Prints the parent and AI comparison table for one
+    monitoring session.
+    """
+
+    if not comparison_rows:
+        print("\nNo comparison results were found.")
+        return
+
+    print("\nSession Comparison Results\n")
+
+    header = (
+        f"{'Image File':<30}"
+        f"{'AI Model':<15}"
+        f"{'Parent Truth Label':<30}"
+        f"{'AI Model Label':<30}"
+        f"{'Match':<10}"
+        f"{'Parent Explanation':<45}"
+        f"{'AI Explanation'}"
+    )
+
+    print(header)
+    print("-" * len(header))
+
+    for row in comparison_rows:
+
+        print(
+            f"{row['file_name']:<30}"
+            f"{row['ai_model_name']:<15}"
+            f"{row['parent_truth_label']:<30}"
+            f"{row['ai_model_label']:<30}"
+            f"{row['exact_label_match']:<10}"
+            f"{row['parent_explanation'][:42]:<45}"
+            f"{row['ai_model_explanation']}"
+        )
+
+
 if __name__ == "__main__":
     if initialize_db():
         insert_models()

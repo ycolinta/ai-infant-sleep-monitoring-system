@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from database import insert_image
+from database import insert_image, get_comparison_table, print_comparison_table
 from ai_processing import process_img_ai
 from parent_gui import open_parent_gui
 
@@ -116,8 +116,14 @@ def main():
     # to add frequency here
     session_img_ids = run_monitoring_session(interval_minutes=1, duration_hours=1/60)
 
-    if session_img_ids:
-        open_parent_gui(session_img_ids)
+    if not session_img_ids:
+        return
+
+    open_parent_gui(session_img_ids)
+
+    comparison_rows = get_comparison_table(session_img_ids)
+
+    print_comparison_table(comparison_rows)
 
 
 if __name__ == "__main__":
