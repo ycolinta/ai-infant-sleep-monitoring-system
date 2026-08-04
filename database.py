@@ -726,30 +726,29 @@ def print_comparison_table(comparison_rows):
 
     print("\nSession Comparison Results\n")
 
-    header = (
+    print(
         f"{'Image File':<30}"
         f"{'AI Model':<15}"
         f"{'Parent Truth Label':<30}"
         f"{'AI Model Label':<30}"
         f"{'Match':<10}"
-        f"{'Parent Explanation':<45}"
-        f"{'AI Explanation'}"
     )
 
-    print(header)
-    print("-" * len(header))
+    print("_" * 120)
 
     for row in comparison_rows:
-
         print(
             f"{row['file_name']:<30}"
             f"{row['ai_model_name']:<15}"
             f"{row['parent_truth_label']:<30}"
             f"{row['ai_model_label']:<30}"
             f"{row['exact_label_match']:<10}"
-            f"{row['parent_explanation'][:42]:<45}"
-            f"{row['ai_model_explanation']}"
         )
+
+        print(f"Parent Explanation: {row['parent_explanation']}")
+        print(f"AI Model Explanation: {row['ai_model_explanation']}")
+
+        print("_" * 120)
 
 
 if __name__ == "__main__":
