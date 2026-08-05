@@ -172,7 +172,7 @@ The following example demonstrates a successful monitoring session consisting of
 
 ### Parent Assessment GUI
 
-![Parent Assessment GUI](ss/gui_ss.jpg)
+![Parent Assessment GUI](images/ss/gui_ss.jpg)
 
 
 ### Session Comparison Results
