@@ -4,18 +4,25 @@ Independent study project exploring multimodal AI vision models for infant sleep
 
 The system uses a Raspberry Pi Camera Module 3 to capture still images of a sleep environment. The images are transferred to a laptop, processed by multiple multimodal AI models, and stored in a SQLite database. After a monitoring session, a parent reviews the captured images through a basic graphical interface and assigns a reference safety assessment. The parent assessment is then compared with the assessment returned by each AI model.
 
-This project currently evaluates isolated still images rather than continuous video.
+This project currently evaluates images rather than continuous video.
 
 #### Core Question:
-"Can existing multimodal AI models provide assessments of infant sleep environments that are reliable enough to assist parents in infant sleep monitoring?"
+"Can existing multimodal AI models provide assessments of infant sleep environments in a way that is reliable enough to assist parents in infant sleep monitoring?"
+
+## System Requirements
+- Raspberry Pi
+- Raspberry Pi Camera Module 3
+- Windows, macOS, or Linux
+- Python 3.12 or newer
+- Network access to the Raspberry Pi
 
 ## System Architecture
 
-The system is divided between a Raspberry Pi and a laptop.
+The experimental system consists of a Raspberry Pi and a laptop.
 
 ### Raspberry Pi
 
-The Raspberry Pi is responsible for:
+The part of the system that exist in the Raspberry Pi is responsible for:
 
 - Controlling the Camera Module 3 (**camera_script.py**)
 - Capturing high-resolution still images
@@ -25,7 +32,7 @@ The Raspberry Pi is responsible for:
 
 ### Laptop
 
-The laptop is responsible for:
+The part of the system that exist in the laptop is responsible for:
 
 - Starting a monitoring session (**app.py**)
 - Requesting images from the Raspberry Pi via HTTP 
@@ -127,12 +134,6 @@ ai-infant-sleep-monitoring-system/
 ```
 
 
-## System Requirements
-- Raspberry Pi
-- Raspberry Pi Camera Module 3
-- Windows, macOS, or Linux
-- Python 3.12 or newer
-- Network access to the Raspberry Pi
 
 ## How to Run
 
