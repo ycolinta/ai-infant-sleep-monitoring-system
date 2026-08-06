@@ -468,7 +468,7 @@ Let me provide a valid single JSON object:
 ----------------------------------------------------------------------------------------------------
 ```
 
-## Take-Home Lessons
+## Discussion
 
 This independent study explored the feasibility of using AI vision models to assist parents in assessing infant sleep environments. Throughout the project, I designed and implemented a complete end-to-end prototype that integrates a Raspberry Pi camera, HTTP communication, AI vision models, structured JSON validation, SQLite database storage, a parent assessment interface, and automated comparison of AI and parent assessments.
 
