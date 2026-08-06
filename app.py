@@ -4,7 +4,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from database import insert_image, get_comparison_table, print_comparison_table, summarize_session_comparisons, print_summary_comparisons
+from database import (insert_image, get_comparison_table, print_comparison_table,
+                      summarize_session_comparisons, get_invalid_responses,
+                      print_invalid_responses, print_summary_comparisons)
 from ai_processing import process_img_ai
 from parent_gui import open_parent_gui
 
@@ -60,7 +62,7 @@ def run_monitoring_cycle():
 
     # Stop the session of the image could not be captured
     if image_path is None:
-        return False
+        return None
 
     # Insert newly captured image to db
     image_id = insert_image(image_path)
@@ -112,7 +114,7 @@ def main():
 
     session_img_ids = run_monitoring_session(
         # A monitoring session that captures 10 images giving 10 seconds in between
-        interval_seconds=10,
+        interval_seconds=6,
         total_captures=10
     )
 
@@ -128,6 +130,10 @@ def main():
     model_summary = summarize_session_comparisons(comparison_rows)
 
     print_summary_comparisons(model_summary)
+
+    invalid_rows = get_invalid_responses(session_img_ids)
+
+    print_invalid_responses(invalid_rows)
 
 
 if __name__ == "__main__":
