@@ -75,36 +75,32 @@ def run_monitoring_cycle():
     return image_id
 
 
-def run_monitoring_session(interval_minutes, duration_hours):
+def run_monitoring_session(interval_seconds, total_captures):
     """
-    Runs monitoring cycle function repeatedly for the set duration.
+    Runs monitoring cycle function repeatedly for a set number of captures.
+    Waits specified interval seconds between captures.
     Returns a list containing the image IDs created during the run.
     """
-
-    interval_seconds = interval_minutes * 60
-
-    total_cycles = int((duration_hours * 60) / interval_minutes)
 
     session_img_ids = []
 
     print(
         f"Starting monitoring session.\n"
-        f"Duration: {duration_hours} hours\n"
-        f"Interval: {interval_minutes} minutes\n"
-        f"Total captures: {total_cycles}"
+        f"Capture interval: {interval_seconds} seconds\n"
+        f"Total captures: {total_captures}"
     )
 
-    for cycle in range(total_cycles):
+    for capture in range(total_captures):
 
         image_id = run_monitoring_cycle()
 
         if image_id is not None:
             session_img_ids.append(image_id)
 
-        # Wait only if another monitoring cycle will be executed.
+        # Wait only if another monitoring capture will be executed.
         # After the final image, exit the program immediately.
-        if cycle < total_cycles - 1:
-            print(f"Waiting {interval_minutes} minutes.")
+        if capture < total_captures - 1:
+            print(f"Waiting {interval_seconds} seconds before next capture.")
             time.sleep(interval_seconds)
 
     print("\nMonitoring session complete.")
@@ -113,8 +109,12 @@ def run_monitoring_session(interval_minutes, duration_hours):
 
 
 def main():
-    # to add frequency here
-    session_img_ids = run_monitoring_session(interval_minutes=1, duration_hours=1/60)
+
+    session_img_ids = run_monitoring_session(
+        # A monitoring session that captures 10 images giving 10 seconds in between
+        interval_seconds=10,
+        total_captures=10
+    )
 
     if not session_img_ids:
         return
