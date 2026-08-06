@@ -714,6 +714,52 @@ def get_comparison_table(image_ids):
         connection.close()
 
 
+def get_invalid_responses(image_ids):
+    """
+    Retrieves all invalid AI responses associated with
+    the provided image IDs.
+    """
+
+    if not image_ids:
+        return []
+
+    placeholders = ", ".join("?" for _ in image_ids)
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute(
+            f"""
+            SELECT
+                Images.file_name,
+                Model.model_name,
+                InvalidResponse.explanation_error,
+                InvalidResponse.raw_response
+            FROM InvalidResponse
+
+            JOIN Images
+                ON InvalidResponse.image_id = Images.image_id
+
+            JOIN Model
+                ON InvalidResponse.model_id = Model.model_id
+
+            WHERE Images.image_id IN ({placeholders})
+
+            ORDER BY
+                Images.image_id,
+                Model.model_name;
+            """,
+            image_ids
+        )
+
+        return cursor.fetchall()
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
 def print_comparison_table(comparison_rows):
     """
     Prints the parent and AI comparison table for one
@@ -787,8 +833,40 @@ def summarize_session_comparisons(comparison_rows):
     return model_summary
 
 
+def print_invalid_responses(invalid_rows):
+    """
+    Prints all invalid AI responses generated during
+    the monitoring session.
+    """
+
+    print("\nInvalid Response Summary")
+    print("-" * 100)
+
+    if not invalid_rows:
+        print("No invalid AI responses detected.")
+        return
+
+    print(
+        f"{'Image File':<30}"
+        f"{'AI Model':<22}"
+        f"{'Validation or Parsing Error'}"
+    )
+
+    print("-" * 100)
+
+    for row in invalid_rows:
+        print(
+            f"{row['file_name']:<30}"
+            f"{row['model_name']:<22}"
+            f"{row['explanation_error']}"
+        )
+
+        print(f"Raw Response: {row['raw_response']}")
+        print("-" * 100)
+
+
 def print_summary_comparisons(model_summary):
-    """"
+    """
     Prints the agreement between each AI model
     """
     print("\nAgreement Summary")
