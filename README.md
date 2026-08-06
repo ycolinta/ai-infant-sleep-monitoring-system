@@ -440,17 +440,6 @@ AI Model Explanation: The sleep environment includes a soft blanket and a stuffe
 ______________________________________________________________________________________________________________________________________________________
 ```
 
-
-### Session Comparison Results
-
-| Image File | AI Model | Parent Truth Label | AI Model Label | Exact Match |
-|------------|----------|--------------------|----------------|:-----------:|
-| capture_20260804_000519.jpg | Claude Sonnet 4-6 | Possible safety concerns | Possible safety concerns |     Yes     |
-| capture_20260804_000519.jpg | GPT-4.1 Mini | Possible safety concerns | No apparent safety concerns |     No      |
-| capture_20260804_000519.jpg | Gemini 2.5 Flash | Possible safety concerns | No apparent safety concerns |     No      |
-| capture_20260804_000519.jpg | Mistral Medium 3.5 | Possible safety concerns | No apparent safety concerns |     No      |
-
-
 ### Agreement Summary
 
 | AI Model | Exact Matches | Agreement |
@@ -481,11 +470,22 @@ Let me provide a valid single JSON object:
 
 ## Take-Home Lessons
 
-This independent study explored the feasibility of using multimodal AI vision models to assist parents in assessing infant sleep environments. Throughout the project, I designed and implemented a complete end-to-end prototype that integrates Raspberry Pi image capture, HTTP communication, AI vision models, structured JSON validation, SQLite database storage, a parent assessment interface, and automated comparison of AI and parent assessments.
+This independent study explored the feasibility of using AI vision models to assist parents in assessing infant sleep environments. Throughout the project, I designed and implemented a complete end-to-end prototype that integrates a Raspberry Pi camera, HTTP communication, AI vision models, structured JSON validation, SQLite database storage, a parent assessment interface, and automated comparison of AI and parent assessments.
 
-Beyond evaluating multiple AI models, the project provided practical experience designing a modular software architecture, integrating external APIs, validating structured AI outputs, handling invalid model responses, and coordinating communication between distributed system components. Developing the complete monitoring pipeline reinforced the importance of data validation, database design, reusable software components, and systematic evaluation when building AI-assisted applications.
+Beyond evaluating multiple AI models, this project provided me with practical experience designing a modular software program, integrating external APIs, validating structured AI outputs, handling invalid model responses, and coordinating communication between distributed system components. Developing the complete monitoring pipeline reinforced the importance of all these things when building AI-assisted applications.
 
 Overall, this project demonstrated how existing multimodal AI models can be incorporated into a functional prototype that supports parent assessment of infant sleep environments while also highlighting differences in model reasoning and agreement with parent reference assessments.
+
+
+## Future Work
+
+Possible extensions of this project include:
+
+- Expand the evaluation using a larger and more diverse collection of infant sleep environment images.
+- Evaluate additional multimodal AI vision models as they become available.
+- Incorporate video-based monitoring to assess changes in the sleep environment over time instead of single image snapshots.
+- Develop a more comprehensive desktop or mobile application that allows parents to review historical monitoring sessions, AI assessments, and trends.
+- Explore the integration of real-time notifications when potential sleep safety concerns are detected.
 
 ## Data Sources
 
