@@ -491,9 +491,8 @@ Possible extensions of this project include:
 
 The images used during the experimental evaluation were obtained from a combination of publicly available datasets, publicly accessible web sources, and images collected by the parent.
 
-### Parent-Collected Images
-- Used to evaluate the complete monitoring pipeline, including Raspberry Pi image capture, AI assessment, parent assessment, and comparison analysis.
-
+### Image-Collected Images
+- Images that are collected in this system to evaluate the complete monitoring pipeline
 ### Public Dataset
 - Infant Sleep Posture Recognition Image Dataset  
   https://huggingface.co/datasets/Mobiusi/Infant-Sleep-Posture-Recognition-Image-Dataset
