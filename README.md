@@ -479,4 +479,39 @@ Let me provide a valid single JSON object:
 ----------------------------------------------------------------------------------------------------
 ```
 
+## Take-Home Lessons
+
+This independent study explored the feasibility of using multimodal AI vision models to assist parents in assessing infant sleep environments. Throughout the project, I designed and implemented a complete end-to-end prototype that integrates Raspberry Pi image capture, HTTP communication, AI vision models, structured JSON validation, SQLite database storage, a parent assessment interface, and automated comparison of AI and parent assessments.
+
+Beyond evaluating multiple AI models, the project provided practical experience designing a modular software architecture, integrating external APIs, validating structured AI outputs, handling invalid model responses, and coordinating communication between distributed system components. Developing the complete monitoring pipeline reinforced the importance of data validation, database design, reusable software components, and systematic evaluation when building AI-assisted applications.
+
+Overall, this project demonstrated how existing multimodal AI models can be incorporated into a functional prototype that supports parent assessment of infant sleep environments while also highlighting differences in model reasoning and agreement with parent reference assessments.
+
+## Data Sources
+
+The images used during the experimental evaluation were obtained from a combination of publicly available datasets, publicly accessible web sources, and images collected by the parent.
+
+### Parent-Collected Images
+- Used to evaluate the complete monitoring pipeline, including Raspberry Pi image capture, AI assessment, parent assessment, and comparison analysis.
+
+### Public Dataset
+- Infant Sleep Posture Recognition Image Dataset  
+  https://huggingface.co/datasets/Mobiusi/Infant-Sleep-Posture-Recognition-Image-Dataset
+
+### Publicly Available Images
+- iStock  
+  https://www.istockphoto.com
+
+- WLTX News – *Study: Parents Still Put Babies in Risky Sleep Environments*  
+  https://www.wltx.com/article/news/study-parents-still-put-babies-in-risky-sleep-environments/101-298253179
+
+- Springer – *Sudden Infant Death Syndrome* (Image source)  
+  https://link.springer.com/rwe/10.1007/978-1-61779-403-2_3
+
+- Owlet Baby Care – *Can a Baby Sleep Too Much?*  
+  https://owletbabycare.co.uk/blogs/blog/can-a-baby-sleep-too-much
+
+&nbsp;
+
+
 **Disclaimer:** This project investigates the feasibility of multimodal AI models as parent-assistance tools for infant sleep monitoring. It is a research prototype and is not intended to replace caregiver judgment or medical advice.
